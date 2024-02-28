@@ -22,7 +22,8 @@ function verifyJwtToken(req,res,next){
     if(!bearer) return res.send("Bearer token required");
     const token=bearer.slice(7);
     try{
-        jwt.verify(token,jwtPass);
+        const decoded = jwt.verify(token,jwtPass);
+        req.username=decoded.username;
         next();
     }
     catch(error){

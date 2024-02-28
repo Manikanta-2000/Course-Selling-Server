@@ -26,7 +26,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required:[true,"password is required"]
     },
-    courses : []
+    courses : [{
+        type:mongoose.Schema.Types.ObjectId,
+        ref : "Course"
+    }]
 });
 
 const CourseSchema = new mongoose.Schema({

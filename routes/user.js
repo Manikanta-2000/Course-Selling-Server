@@ -73,9 +73,9 @@ router.post("/courses/:courseId",verifyJwtToken,async function(req,res){
         const courseID = req.params.courseId;
         const found = await Course.findById(courseID);
             if(!found) res.send("invalid course id");
-        let user = await User.findOne({username : req.headers.username});
-        user.courses.push(found);
-        const updated = await User.findOneAndUpdate({username : req.headers.username},{courses:user.courses});
+        let user = await User.findOne({username : req.username});
+        user.courses.push(courseID);
+        const updated = await User.findOneAndUpdate({username : req.username},{courses:user.courses});
         res.json({
             message : "Course purchased successfully"
         })
@@ -85,9 +85,10 @@ router.post("/courses/:courseId",verifyJwtToken,async function(req,res){
         }
 })
 router.get("/purchasedCourses",verifyJwtToken,async function(req,res){
-    const userCourses=await User.findOne({username:req.headers.username});
+    const userCourses=await User.findOne({username:req.username});
+    const courses= await Course.find({_id:{$in:userCourses.courses}})
     res.status(200).json({
-        courses : userCourses.courses
+        courses
     });
 })
 
