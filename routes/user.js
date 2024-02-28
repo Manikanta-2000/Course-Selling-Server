@@ -55,9 +55,20 @@ router.post("/signup",async function(req,res){
     }
 })
 
-router.post("/signin",userMiddleware,function(req,res){
-    const token=jwt.sign({username:req.body.username},jwtPass,{expiresIn:"1h"});
-    res.json({
+router.post("/signin",async function(req,res){
+    const username=req.body.username;
+    const password=req.body.password;
+    if(!username || !password){
+        return res.status(403).send("username and password required");
+    }
+    const found=await User.findOne({username});
+    if(!found) return res.status(401).send("Username not found");
+    bcrypt.compare(password,found.password,function(error,result){
+        if(!result) return res.status(401).send("Invalid password");
+        
+    })
+    const token=jwt.sign({username:found.username,userId: found._id},jwtPass,{expiresIn:"1h"});
+    return res.json({
         token
     })
 })
@@ -73,9 +84,14 @@ router.post("/courses/:courseId",verifyJwtToken,async function(req,res){
         const courseID = req.params.courseId;
         const found = await Course.findById(courseID);
             if(!found) res.send("invalid course id");
-        let user = await User.findOne({username : req.username});
-        user.courses.push(courseID);
-        const updated = await User.findOneAndUpdate({username : req.username},{courses:user.courses});
+        let userId=req.userPayLoad.userId;
+        let user = await User.findById(userId);
+        let purchased = user.courses.filter(function(id){
+            return id.equals(courseID);
+        })
+        if(purchased.length!=0) return res.send("Course already purchased");
+        user.courses.push(found._id);
+        const updated = await User.findByIdAndUpdate(userId,{courses:user.courses});
         res.json({
             message : "Course purchased successfully"
         })
@@ -85,7 +101,8 @@ router.post("/courses/:courseId",verifyJwtToken,async function(req,res){
         }
 })
 router.get("/purchasedCourses",verifyJwtToken,async function(req,res){
-    const userCourses=await User.findOne({username:req.username});
+    let userId=req.userPayLoad.userId;
+    const userCourses=await User.findById(userId);
     const courses= await Course.find({_id:{$in:userCourses.courses}})
     res.status(200).json({
         courses

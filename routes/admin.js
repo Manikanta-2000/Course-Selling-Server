@@ -59,9 +59,22 @@ router.post("/signup",async function(req,res){
     }
 })
 
-router.post('/signin',adminMiddleware,async (req, res) => {
-    var token=jwt.sign({username:req.body.username},jwtPass,{expiresIn:"1h"});
-    res.json({
+router.post('/signin',async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+    if(!username || !password){
+        return res.status(403).send('username and password required');
+    }
+    const found = await Admin.findOne({username});
+    if(!found){
+        return res.status(403).send("Invalid user");
+    }
+    bcrypt.compare(password,found.password,function(error,result){
+        if(!result) return res.status(403).send("password did not match");
+
+    })
+    var token=jwt.sign({username:req.body.username,id: found._id},jwtPass,{expiresIn:"1h"});
+    return res.json({
         token
     })
     
