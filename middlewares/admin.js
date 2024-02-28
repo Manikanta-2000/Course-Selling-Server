@@ -1,7 +1,6 @@
 const { Admin } = require("../db/index");
 const bcrypt = require("bcrypt");
 const jwt=require("jsonwebtoken");
-const jwtPass="12345";
 
 async function adminMiddleware(req,res,next){
     
@@ -12,7 +11,7 @@ function verifyJwtToken(req,res,next){
     if(!bearer) return res.send("required bearer token");
     const token=bearer.split(" ")[1];
     try{
-        var decoded = jwt.verify(token,jwtPass);
+        var decoded = jwt.verify(token,process.env.jwtPassword);
         req.adminpayload=decoded;
         next();
     }

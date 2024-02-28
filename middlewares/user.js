@@ -1,7 +1,6 @@
 //Middleware for handling authentication\
 const bcrypt=require("bcrypt");
 const jwt=require("jsonwebtoken");
-const jwtPass="12345";
 const { Admin, User, Course } = require("../db/index");
 async function userMiddleware(req,res,next){
     
@@ -12,7 +11,7 @@ function verifyJwtToken(req,res,next){
     if(!bearer) return res.send("Bearer token required");
     const token=bearer.split(" ")[1];
     try{
-        const decoded = jwt.verify(token,jwtPass);
+        const decoded = jwt.verify(token,process.env.jwtPassword);
         req.userPayLoad=decoded;
         next();
     }
