@@ -3,7 +3,6 @@ const router =  express.Router();
 const { Admin, User, Course } = require("../db/index");
 const {adminMiddleware ,verifyJwtToken}= require("../middlewares/admin");
 const jwt=require("jsonwebtoken");
-const jwtPass="12345";
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const z= require("zod");
@@ -73,7 +72,7 @@ router.post('/signin',async (req, res) => {
         if(!result) return res.status(403).send("password did not match");
 
     })
-    var token=jwt.sign({username:req.body.username,id: found._id},jwtPass,{expiresIn:"1h"});
+    var token=jwt.sign({username:req.body.username,id: found._id},process.env.jwtPassword,{expiresIn:"1h"});
     return res.json({
         token
     })
